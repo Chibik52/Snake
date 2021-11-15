@@ -1,0 +1,195 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Змейка</title>
+<style type="text/css">
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+user-select:none;
+}
+canvas{
+border:1px solid black;
+top:50%;
+left:50%;
+position:absolute;
+transform:translate(-50%,-50%);
+background:#919e3c;
+width:300;
+}
+#score{
+font-size:24pt;
+position:absolute;
+top:70%;
+left:76%;
+transform:translate(-76%,-70%);
+}
+#gameMenu{
+top:50%;
+left:50%;
+position:absolute;
+transform:translate(-50%,-50%);
+font-size:72pt;
+
+}
+#btn1{
+width:100%;
+height:100;
+cursor:pointer;
+font-size:32pt;
+box-shadow: 4px 4px 2px 0px black;
+}
+body{
+background-image: url(https://images-na.ssl-images-amazon.com/images/I/81bev0AWQtS._AC_SL1500_.jpg);
+background-size:56%;
+background-repeat:no-repeat;
+background-position:43.5% 10;
+}
+</style>
+</head>
+<body>
+<font size="5">Возможны баги :)</font>
+<canvas width="600" height="600" id="canvas1"></canvas>
+<div id="score">Счет: 0</div>
+<div id="gameMenu">
+<p>Змейка</p>
+<input type="button" value="Начать игру" id="btn1" onclick="startGame();"><br>
+<select id="difSelect" onchange="changeDif();">
+<option value="0">Легкая сложность</option>
+<option value="1" selected>Обычная сложность</option>
+</select>
+</div>
+<script language="JavaScript">
+let gameLoop,fps=10;
+let player1={
+speed:25,
+width:25,
+left:false,
+right:true,
+up:false,
+down:false,
+score:0,
+game:false,
+pos:0
+}
+let snake1=[
+{x:100, y:300,xOld:100,yOld:300},
+{x:75, y:300,xOld:75,yOld:300},
+{x:50, y:300,xOld:50,yOld:300},
+];
+let apple1={
+x:50,
+y:50
+}
+function initGame(){
+ctx.clearRect(0,0,cnv.height,cnv.width);
+clearInterval(gameLoop);
+document.getElementById("gameMenu").hidden=false;
+player1.left=player1.up=player1.down=player1.game=false;
+player1.right=true;
+player1.score=player1.pos=0;
+snake1=[
+{x:100, y:300,xOld:100,yOld:300},
+{x:75, y:300,xOld:75,yOld:300},
+{x:50, y:300,xOld:50,yOld:300},
+];
+apple1={
+x:50,
+y:50
+}
+}
+function startGame(){
+player1.game=true;
+document.getElementById("score").innerHTML=("Счет: 0");
+document.getElementById("gameMenu").hidden=true;
+gameLoop=setInterval(()=>draw(),1000/fps);
+}
+cnv=document.getElementById("canvas1");
+ctx=cnv.getContext("2d");
+function draw(){
+k=0;
+let length=snake1.length-1;
+ctx.clearRect(0,0,cnv.height,cnv.width);
+
+ctx.fillStyle="red";
+ctx.fillRect(apple1.x,apple1.y,player1.width,player1.width);
+ctx.fillStyle="black";
+switch(player1.pos){
+case 0:{player1.up=false;player1.down=false;player1.left=false;player1.right=true;break;}
+case 1:{player1.up=false;player1.down=true;player1.left=false;player1.right=false;break;}
+case 2:{player1.up=false;player1.down=false;player1.left=true;player1.right=false;break;}
+case 3:{player1.up=true;player1.down=false;player1.left=false;player1.right=false;break;}
+}
+if(player1.up)
+snake1[0].y-=player1.speed;
+else if(player1.down)
+snake1[0].y+=player1.speed;
+else if(player1.left)
+snake1[0].x-=player1.speed;
+else if(player1.right)
+snake1[0].x+=player1.speed;
+for(i=1;i<snake1.length;i++){
+snake1[i].xOld=snake1[i].x;
+snake1[i].yOld=snake1[i].y;
+snake1[i].x=snake1[i-1].xOld;
+snake1[i].y=snake1[i-1].yOld;
+}
+for(i=0;i<snake1.length;i++)
+ctx.fillRect(snake1[i].x,snake1[i].y,player1.width,player1.width);
+ctx.strokeStyle="gray";
+ctx.beginPath();
+for(i=player1.width;i<=cnv.width;i+=player1.width)
+for(j=player1.width;j<=cnv.height;j+=player1.width){
+ctx.moveTo(0,i);
+ctx.lineTo(cnv.width,i);
+ctx.moveTo(j,0);
+ctx.lineTo(j,cnv.height);
+}
+ctx.stroke();
+snake1[0].xOld=snake1[0].x;
+snake1[0].yOld=snake1[0].y;
+
+if(snake1[0].x+player1.width>cnv.width)snake1[0].x=-player1.width;
+else if(snake1[0].x<0)snake1[0].x=cnv.width;
+if(snake1[0].y+player1.width>cnv.height)snake1[0].y=-player1.width;
+else if(snake1[0].y<0)snake1[0].y=cnv.height;
+if(snake1[0].x==apple1.x&&snake1[0].y==apple1.y){
+randomPosition();
+x=snake1[snake1.length-1].x;y=snake1[snake1.length-1].y;
+snake1.push({x:x,y:y});
+player1.score++;
+document.getElementById("score").innerHTML=("Счет: "+player1.score);
+}
+for(i=1;i<snake1.length;i++)
+if(snake1[0].x==snake1[i].x&&snake1[0].y==snake1[i].y/*||snake1[0].x<-1||snake1[0].x>cnv.width||snake1[0].y<-1||snake1[0].y>cnv.height*/)
+initGame();
+}
+function randomPosition(){
+apple1.x=Math.floor(Math.random()*((cnv.width/player1.width)))*player1.width;
+apple1.y=Math.floor(Math.random()*((cnv.height/player1.width)))*player1.width;
+for(i=0;i<snake1.length;i++)
+if(apple1.x==snake1[i].x&&apple1.y==snake1[i].y)randomPosition();
+}
+function changeDif(){
+if (document.getElementById("difSelect").value==0){
+player1.width=player1.speed=50;fps=7.5;}
+else if (document.getElementById("difSelect").value==1){
+player1.width=player1.speed=25;fps=10;}
+}
+window.addEventListener("keydown",function(key){
+if(!player1.game)return;
+switch(key.code){
+/*case "ArrowUp":{if(!player1.down){player1.up=true;player1.down=false;player1.left=false;player1.right=false;break;}}
+case "ArrowDown":{if(!player1.up){player1.up=false;player1.down=true;player1.left=false;player1.right=false;break;}}
+case "ArrowLeft":{if(!player1.right){player1.up=false;player1.down=false;player1.left=true;player1.right=false;break;}}
+case "ArrowRight":{if(!player1.left){player1.up=false;player1.down=false;player1.left=false;player1.right=true;break;}}*/
+case "ArrowLeft":{player1.pos--;if(player1.pos<0)player1.pos=3;break;}
+case "ArrowRight":{player1.pos++;if(player1.pos>3)player1.pos=0;break;}
+}
+});
+//window.addEventListener("load",function(){setInterval(()=>draw(),100)});
+window.addEventListener("load",initGame);
+</script>
+</body>
+</html>
